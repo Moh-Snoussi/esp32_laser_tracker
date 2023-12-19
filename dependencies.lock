@@ -1,0 +1,22 @@
+dependencies:
+  esp-dl:
+    component_hash: dd440349891c92ec4e2522cb60826c933a3610c73d424e9b42a184c0a5eb26f9
+    source:
+      git: git@github.com:espressif/esp-dl.git
+      path: .
+      type: git
+    version: 959892df9a14760d2b69ef00e878056950a3071b
+  espressif/esp32-camera:
+    component_hash: b8ac31f1c94f5f051f4a19b7c7ccdb1ee53fcb63f13b340c496ba178bdd6305a
+    source:
+      service_url: https://api.components.espressif.com/
+      type: service
+    version: 2.0.6
+  idf:
+    component_hash: null
+    source:
+      type: idf
+    version: 4.4.6
+manifest_hash: 377cce5292048929846d2bc5b7661465270037bc5c1832f01ec8fa141afa5d84
+target: esp32
+version: 1.0.0

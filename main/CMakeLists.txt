@@ -1,0 +1,15 @@
+set(include_dir
+$ENV{IDF_PATH}/components/esp-who/components
+../custom_components
+)
+idf_component_register(
+    SRCS
+        "wrappers/camera/camera.cpp"
+        "wrappers/sd/sd.cpp"
+        "wrappers/wifi/wifi.cpp"
+        "wrappers/server/server.cpp"
+        "wrappers/servo/servo.cpp"
+        "laser_face_tracker.cpp"
+        "../custom_components/iot_servo/iot_servo.cpp"
+        "../custom_components/iot_servo/include/iot_servo.h"
+    )

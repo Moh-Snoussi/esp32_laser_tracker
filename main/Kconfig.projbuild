@@ -1,0 +1,214 @@
+menu "Project configuration"
+
+  menu "Camera configuration"
+
+    config XCLK_FREQ
+      int "XCLK Frequency"
+      default "20000000"
+      help
+          The XCLK Frequency in Herz.
+
+    menu "Pin Configuration"
+      config D0
+        int "D0"
+        default "5"
+      config D1
+        int "D1"
+        default "18"
+      config D2
+        int "D2"
+        default "19"
+      config D3
+        int "D3"
+        default "21"
+      config D4
+        int "D4"
+        default "36"
+      config D5
+        int "D5"
+        default "39"
+      config D6
+        int "D6"
+        default "34"
+      config D7
+        int "D7"
+        default "35"
+      config XCLK
+        int "XCLK"
+        default "0"
+      config PCLK
+        int "PCLK"
+        default "22"
+      config VSYNC
+        int "VSYNC"
+        default "25"
+      config HREF
+        int "HREF"
+        default "23"
+      config SDA
+        int "SDA"
+        default "26"
+      config SCL
+        int "SCL"
+        default "27"
+      config RESET
+        int "RESET"
+        default "-1"
+      config PWDN
+        int "PWDN"
+        default "32"
+    endmenu
+
+    config OV2640_SUPPORT
+      bool "OV2640 Support"
+      default y
+      help
+        Enable this option if you want to use the OV2640.
+        Disable this option to save memory.
+
+    config OV7725_SUPPORT
+      bool "OV7725 Support"
+      default n
+      help
+        Enable this option if you want to use the OV7725.
+        Disable this option to save memory.
+
+    config OV3660_SUPPORT
+      bool "OV3660 Support"
+      default n
+      help
+        Enable this option if you want to use the OV3360.
+        Disable this option to save memory.
+
+    config OV5640_SUPPORT
+      bool "OV5640 Support"
+      default n
+      help
+        Enable this option if you want to use the OV5640.
+        Disable this option to save memory.
+
+    choice CAMERA_TASK_PINNED_TO_CORE
+      bool "Camera task pinned to core"
+      default CAMERA_CORE0
+      help
+        Pin the camera handle task to a certain core(0/1). It can also be done automatically choosing NO_AFFINITY.
+
+      config CAMERA_CORE0
+        bool "CORE0"
+      config CAMERA_CORE1
+        bool "CORE1"
+      config CAMERA_NO_AFFINITY
+        bool "NO_AFFINITY"
+
+    endchoice
+
+  endmenu
+
+  menu "Detection configuration"
+
+    config MAX_ACCEPTED_AVG_DIFF
+      int "Maximum accepted average difference"
+      default 7
+      help
+            For every QQVGA grayscale picture taken, an average is calculated. If absolute(new average - the previous average) > MAX_ACCEPTED_AVG_DIFF, it takes a full QXVGA Jpeg picture.
+
+    config PICTURE_QUEUE_SIZE
+      int "Picture queue size"
+      default 7
+      help
+            Every time a new QXVGA picture is taken, send to the queue. This configuration represents the maximum size allowed to the queue.
+
+  endmenu
+
+  menu "Wifi configuration"
+    config ESP_WIFI_SSID
+        string "WiFi SSID"
+        default "MagentaWLAN-RQHR"
+        help
+            SSID (network name) for the example to connect to.
+
+    config ESP_WIFI_PASSWORD
+        string "WiFi Password"
+        default "xxxxxxxx"
+        help
+            WiFi password (WPA or WPA2) for the example to use.
+
+    choice ESP_WIFI_SAE_MODE
+        prompt "WPA3 SAE mode selection"
+        default ESP_WPA3_SAE_PWE_BOTH
+        help
+            Select mode for SAE as Hunt and Peck, H2E or both.
+        config ESP_WPA3_SAE_PWE_HUNT_AND_PECK
+            bool "HUNT AND PECK"
+        config ESP_WPA3_SAE_PWE_HASH_TO_ELEMENT
+            bool "H2E"
+        config ESP_WPA3_SAE_PWE_BOTH
+            bool "BOTH"
+    endchoice
+
+    config ESP_WIFI_PW_ID
+        string "PASSWORD IDENTIFIER"
+        depends on  ESP_WPA3_SAE_PWE_HASH_TO_ELEMENT|| ESP_WPA3_SAE_PWE_BOTH
+        default ""
+        help
+            password identifier for SAE H2E
+
+    config ESP_MAXIMUM_RETRY
+        int "Maximum retry"
+        default 5
+        help
+            Set the Maximum retry to avoid station reconnecting to the AP unlimited when the AP is really inexistent.
+
+    choice ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD
+        prompt "WiFi Scan auth mode threshold"
+        default ESP_WIFI_AUTH_WPA2_PSK
+        help
+            The weakest authmode to accept in the scan mode.
+            This value defaults to ESP_WIFI_AUTH_WPA2_PSK incase password is present and ESP_WIFI_AUTH_OPEN is used.
+            Please select ESP_WIFI_AUTH_WEP/ESP_WIFI_AUTH_WPA_PSK incase AP is operating in WEP/WPA mode.
+
+        config ESP_WIFI_AUTH_OPEN
+            bool "OPEN"
+        config ESP_WIFI_AUTH_WEP
+            bool "WEP"
+        config ESP_WIFI_AUTH_WPA_PSK
+            bool "WPA PSK"
+        config ESP_WIFI_AUTH_WPA2_PSK
+            bool "WPA2 PSK"
+        config ESP_WIFI_AUTH_WPA_WPA2_PSK
+            bool "WPA/WPA2 PSK"
+        config ESP_WIFI_AUTH_WPA3_PSK
+            bool "WPA3 PSK"
+        config ESP_WIFI_AUTH_WPA2_WPA3_PSK
+            bool "WPA2/WPA3 PSK"
+        config ESP_WIFI_AUTH_WAPI_PSK
+            bool "WAPI PSK"
+    endchoice
+
+  endmenu
+  menu "Lazer configuration"
+    config LAZER_PIN
+      int "Lazer pin"
+      default "4"
+      help
+          The pin used to control the lazer.
+
+    config LAZER_RELAY_PIN
+      int "Lazer relay pin"
+      default 0
+      help
+          The pin used to control the lazer relay, if not set the lazer will be always on.
+
+    config USE_SDCARD
+      bool "Save detected faces, in the sdcard"
+      default n
+      help
+          Enable this option if you want to save detected faces.
+
+    config USE_CAM_SERVER
+      bool "Use cam server"
+      default n
+      help
+          Enabbling it will start a web server on port 80, where you can see the camera stream, the local ip will be printed on the serial monitor, idf.py monitor.
+  endmenu
+endmenu

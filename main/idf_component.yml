@@ -1,0 +1,22 @@
+## IDF Component Manager Manifest File
+dependencies:
+  esp-dl:
+    git: git@github.com:espressif/esp-dl.git
+    version: "idfv4.4"
+  espressif/esp32-camera: "*"
+  ## Required IDF version
+  idf:
+    version: "4.4.*"
+
+  # # Put list of dependencies here
+  # # For components maintained by Espressif:
+  # component: "~1.0.0"
+  # # For 3rd party components:
+  # username/component: ">=1.0.0,<2.0.0"
+  # espressif/esp-idf-cxx:
+  #   version: "*"
+    # pre_release: true
+  #   # For transient dependencies `public` flag can be set.
+  #   # `public` flag doesn't have an effect dependencies of the `main` component.
+  #   # All dependencies of `main` are public by default.
+  #   public: true
