@@ -12,11 +12,9 @@
 #include "esp_log.h"
 #include "sd.h"
 
-
 SD::SD() : log_tag("sd"), name(new char[20])
 {
 }
-
 
 bool SD::isInitialized = false;
 SD SD::instance{};
@@ -32,7 +30,9 @@ SD &SD::getInstance()
         if (error != ESP_OK)
         {
             ESP_LOGE(instance.log_tag, "Failed to initialize SD card");
-        } else {
+        }
+        else
+        {
             ESP_LOGI(instance.log_tag, "SD card initialized");
         }
 
@@ -42,7 +42,6 @@ SD &SD::getInstance()
     return instance;
 };
 
-
 esp_err_t SD::init()
 {
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
@@ -50,8 +49,7 @@ esp_err_t SD::init()
     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
         .format_if_mount_failed = true,
         .max_files = 5,
-        .allocation_unit_size = 8 * 1024
-    };
+        .allocation_unit_size = 8 * 1024};
     sdmmc_card_t *card;
     esp_err_t err = esp_vfs_fat_sdmmc_mount("/sdcard", &host, &slot_config, &mount_config, &card);
     if (err != ESP_OK)
@@ -66,18 +64,14 @@ esp_err_t SD::init()
 int SD::counter = 0;
 esp_err_t SD::save_image(camera_fb_t *frame, char *filename)
 {
-    // filename = "test3.jpg";
     SD &self = SD::getInstance();
-    ESP_LOGI(self.log_tag, "Saving image with length: %zu", frame->len);
-    // create a new file
-    char *target;
 
-    asprintf(&target, "/sdcard/x%i.jpg", SD::counter);
+    // create a new filename
+    char *target;
+    asprintf(&target, "/sdcard/%s_%i.jpg", filename, SD::counter);
     SD::counter++;
 
-    ESP_LOGI(self.log_tag, "Saving image to path: %s", target);
-
-    // save the file
+    ESP_LOGI(self.log_tag, "Saving file to path: %s", target);
     FILE *file = fopen(target, "w");
 
     if (!file)
@@ -86,18 +80,23 @@ esp_err_t SD::save_image(camera_fb_t *frame, char *filename)
         return ESP_FAIL;
     }
 
-    // write test to file
-    fwrite(frame->buf, 1, frame->len, file);
+    if (frame->format != PIXFORMAT_JPEG)
+    {
+        // rgb565 to jpeg
+        size_t out_len;
+        uint8_t *out_buf;
+        fmt2jpg((uint8_t *)frame->buf, sizeof(frame->buf), frame->height, frame->width, frame->format, 60, &out_buf, &out_len);
+
+        fwrite(frame->buf, 1, frame->len, file);
+        free(out_buf);
+    }
+    else
+    {
+        fwrite(frame->buf, 1, frame->len, file);
+    }
 
     fclose(file);
 
     ESP_LOGI(self.log_tag, "Saved file to path: %s", filename);
     return ESP_OK;
 }
-
-
-
-
-
-
-

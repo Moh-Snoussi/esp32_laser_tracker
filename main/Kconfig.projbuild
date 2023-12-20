@@ -187,17 +187,18 @@ menu "Project configuration"
 
   endmenu
   menu "Lazer configuration"
-    config LAZER_PIN
-      int "Lazer pin"
-      default "4"
-      help
-          The pin used to control the lazer.
 
     config LAZER_RELAY_PIN
       int "Lazer relay pin"
       default 0
       help
           The pin used to control the lazer relay, if not set the lazer will be always on.
+
+    config SERVO_SIGNAL_PIN
+      int "Servo signal pin"
+      default 15
+      help
+          The pin used to control the servo, if not set the servo will not be used.
 
     config USE_SDCARD
       bool "Save detected faces, in the sdcard"

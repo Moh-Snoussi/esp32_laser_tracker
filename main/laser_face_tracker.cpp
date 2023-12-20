@@ -10,25 +10,23 @@
 #include "dl_tool.hpp"
 #include "dl_image.hpp"
 #include "wrappers/camera/camera.h"
-#include "wrappers/sd/sd.h"
-#include "wrappers/server/server.h"
 #include "wrappers/servo/servo.h"
 #include "wrappers/wifi/wifi.h"
+
+#ifdef CONFIG_USE_CAM_SERVER
+#include "wrappers/server/server.h"
+#endif
+
+#ifdef CONFIG_USE_SDCARD
+#include "wrappers/sd/sd.h"
+#endif
 
 /**
  * @brief Pin connected to the lazer, can be configured in menuconfig: idf.py menuconfig
  */
-static const gpio_num_t LAZER_PIN = (gpio_num_t)CONFIG_LAZER_PIN;
+static const gpio_num_t LAZER_PIN = (gpio_num_t)CONFIG_LAZER_RELAY_PIN;
 
-#ifndef CONFIG_USE_CAM_SERVER
-#define CONFIG_USE_CAM_SERVER false
-#endif
-
-#ifndef CONFIG_USE_SDCARD
-#define CONFIG_USE_SDCARD false
-#endif
-
-
+static const gpio_num_t SERVO_SIGNAL_PIN = (gpio_num_t)CONFIG_SERVO_SIGNAL_PIN;
 
 /**
  * @brief Task handle for core a
@@ -43,7 +41,7 @@ servo_config_t servo_cfg = {
     .max_width_us = 2000,
     .freq = 50,
     .channels = {
-        .servo_pin = {GPIO_NUM_14},
+        .servo_pin = {SERVO_SIGNAL_PIN},
         // channel should not conflict with other channels, like that of the camera
         .ch = {LEDC_CHANNEL_0},
     }};
@@ -73,6 +71,12 @@ void core_a(void *pvParameters)
 
 void core_b(void *pvParameters)
 {
+  /**
+   * @brief Fade tracker, if no face is detected for 3 frames, turn off the lazer
+  */
+  int fade_tracker = 0;
+  int fade_threshold = 4;
+  float senstivity = 0.7F;
   HumanFaceDetectMSR01 detector(0.2F, 0.5F, 1, 0.4F);
   camera_fb_t *frame = nullptr;
   while (true)
@@ -82,7 +86,8 @@ void core_b(void *pvParameters)
     {
       std::list<dl::detect::result_t> &results = detector.infer<uint16_t>((uint16_t *)frame->buf, {(int)frame->height, (int)frame->width, 3});
 
-      if (results.size() == 0)
+      fade_tracker++;
+      if (results.size() == 0 && fade_tracker >= fade_threshold)
       {
         gpio_set_level(LAZER_PIN, 0);
         continue;
@@ -91,19 +96,24 @@ void core_b(void *pvParameters)
       int i = 0;
       for (std::list<dl::detect::result_t>::iterator prediction = results.begin(); prediction != results.end(); prediction++, i++)
       {
-        uint16_t mid_x = (prediction->box[0] + prediction->box[2]) / 2;
-        float diff_x = mid_x - (frame->width / 2);
-        float angle = diff_x / (float)frame->width * 180.0F;
 
+#ifdef CONFIG_USE_SDCARD
+        SD::save_image(frame, "test");
+#endif
+
+        ESP_LOGI("face at", "x: %i, y: %i, w: %i, h: %i", prediction->box[0], prediction->box[1], prediction->box[2], prediction->box[3]);
         // invert angle
-        float target_angle = 90 - angle;
+        // ESP_LOGI("servo angle set to", "angle: %f, target_angle: %f", angle, target_angle);
+        float mid_x = (prediction->box[0] + prediction->box[2]) / 2;
+        float angle = (mid_x / frame->width) * 180;
+        float target_angle = 90 + ((90 - angle) * senstivity);
         esp_err_t success = servo.turnTo(target_angle, LEDC_CHANNEL_0);
         gpio_set_level(LAZER_PIN, 1); // turn on lazer
+        fade_tracker = 0;
 
-        if (CONFIG_USE_CAM_SERVER)
-        {
-          Server::imageBuff = frame->buf;
-        }
+#ifdef CONFIG_USE_CAM_SERVER
+        Server::imageBuff = frame->buf;
+#endif
       }
     }
     vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -112,9 +122,10 @@ void core_b(void *pvParameters)
 
 extern "C" void app_main()
 {
-  // pin 15 is connected to a relay, which controls the lazer
+  ESP_LOGI("main", "LASER_PIN: %i", LAZER_PIN);
+
   gpio_config_t io_conf = {
-      .pin_bit_mask = (1ULL << 15),
+      .pin_bit_mask = (1ULL << LAZER_PIN),
       .mode = GPIO_MODE_OUTPUT,
       .pull_up_en = GPIO_PULLUP_DISABLE,
       .pull_down_en = GPIO_PULLDOWN_DISABLE,
@@ -123,14 +134,13 @@ extern "C" void app_main()
 
   gpio_config(&io_conf);
 
-  if (CONFIG_USE_CAM_SERVER)
+#ifdef CONFIG_USE_CAM_SERVER
+  // wifi credentials are adjusted in menuconfig
+  if (Wifi::Connect())
   {
-    // wifi credentials are adjusted in menuconfig
-    if (Wifi::Connect())
-    {
-      Server::startServer();
-    }
+    Server::startServer();
   }
+#endif
 
   static const char *TAGX = "main";
   ESP_LOGI(TAGX, "Starting core a");

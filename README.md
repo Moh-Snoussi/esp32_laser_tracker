@@ -6,9 +6,21 @@ ESP32 CAM
 Programmer (used for flashing the ESP32)
 SG90 Servo
 Laser pointer (attached to the servo)
+Relay (used to turn the laser pointer on and off)
 
 ## Schematic
 ![Schematic](schema.png?raw=true "Title")
+
+## Configuration
+
+### Increase FLASH memory
+idf.py menuconfig -> Component config -> ESP32-specific -> SPI Flash Size -> 16 MB
+
+### Enable PSRAM
+idf.py menuconfig -> Component config -> ESP32-specific -> Support for external, SPI-connected RAM -> Support for external, SPI-connected RAM
+
+### Increase IRAM memory
+idf.py menuconfig -> Component config -> ESP32-specific 
 
 
 ## Software Requirements
