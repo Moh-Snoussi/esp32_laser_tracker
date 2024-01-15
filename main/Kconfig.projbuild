@@ -190,7 +190,7 @@ menu "Project configuration"
 
     config LAZER_RELAY_PIN
       int "Lazer relay pin"
-      default 0
+      default 15
       help
           The pin used to control the lazer relay, if not set the lazer will be always on.
 
