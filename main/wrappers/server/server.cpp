@@ -24,7 +24,7 @@ esp_err_t Server::handleRoot(httpd_req_t *req)
                     var imgElement = document.getElementById("currentImage");
                     imgElement.src = "/current.jpg?" + new Date().getTime();
                 }
-                // Update the image every 500 milliseconds
+                // Update the image every 3000 milliseconds
                 setInterval(updateImage, 3000);
             </script>
         </body>
